@@ -303,6 +303,11 @@ const App: React.FC = () => {
           <ProjectModal 
               name={selectedProject.name} 
               data={selectedProject.data} 
+              sourceNode={CANON_DATA.meta.source_node}
+              relatedActions={PROPOSED_ACTIONS.filter(action => 
+                action.title.toLowerCase().includes(selectedProject.name.replace(/_/g, ' ').toLowerCase()) ||
+                action.context.toLowerCase().includes(selectedProject.name.replace(/_/g, ' ').toLowerCase())
+              )}
               onClose={() => setSelectedProject(null)} 
           />
         )}
