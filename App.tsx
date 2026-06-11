@@ -11,6 +11,7 @@ import { ProjectDetails } from './types';
 
 import PhilosophyVisualizer from './components/PhilosophyVisualizer';
 import DirectivesGrid from './components/DirectivesGrid';
+import { InteractionProtocols } from './components/InteractionProtocols';
 
 const App: React.FC = () => {
   const [bootComplete, setBootComplete] = useState(false);
@@ -224,6 +225,20 @@ const App: React.FC = () => {
                </span>
              </div>
              <DirectivesGrid directives={CANON_DATA.directives} />
+          </section>
+
+          {/* Interaction Protocols */}
+          <section>
+             <div className="flex items-center justify-between mb-6">
+               <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                 <span className="w-1.5 h-6 bg-emerald-500 rounded-sm"></span>
+                 INTERACTION PROTOCOLS
+               </h2>
+               <span className="text-xs font-mono text-zinc-500 hidden sm:block">
+                 MEMORY_URI: canon_sync.json
+               </span>
+             </div>
+             <InteractionProtocols />
           </section>
 
           {/* High Leverage Actions */}
