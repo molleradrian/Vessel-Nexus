@@ -15,12 +15,14 @@ import { InteractionProtocols } from './components/InteractionProtocols';
 import ObservXRepoSnapshot from './components/ObservXRepoSnapshot';
 import FeedbackTestingMechanics from './components/FeedbackTestingMechanics';
 import AetheriumBackground from './components/AetheriumBackground';
+import { GoogleDriveExplorer } from './components/GoogleDriveExplorer';
+import { AetheriumCoreAI } from './components/AetheriumCoreAI';
 
 const App: React.FC = () => {
   const [bootComplete, setBootComplete] = useState(false);
   const [timeLeft, setTimeLeft] = useState<{d: number, h: number, m: number, s: number} | null>(null);
   const [selectedProject, setSelectedProject] = useState<{name: string, data: ProjectDetails} | null>(null);
-  const [activeView, setActiveView] = useState<'nexus' | 'observx_repo' | 'observx_progression'>('nexus');
+  const [activeView, setActiveView] = useState<'nexus' | 'observx_repo' | 'observx_progression' | 'google_drive' | 'aetherium_core'>('nexus');
 
   useEffect(() => {
     const target = new Date(CANON_DATA.mission_vector.target_date).getTime();
@@ -101,6 +103,26 @@ const App: React.FC = () => {
                 }`}
               >
                 FEEDBACK & PROGRESS
+              </button>
+              <button
+                onClick={() => setActiveView('google_drive')}
+                className={`px-3 py-1.5 text-[11px] rounded-lg transition-all font-semibold whitespace-nowrap ${
+                  activeView === 'google_drive'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+                    : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                }`}
+              >
+                GOOGLE DRIVE
+              </button>
+              <button
+                onClick={() => setActiveView('aetherium_core')}
+                className={`px-3 py-1.5 text-[11px] rounded-lg transition-all font-semibold whitespace-nowrap ${
+                  activeView === 'aetherium_core'
+                    ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20 shadow-[0_0_10px_rgba(139,92,246,0.1)]'
+                    : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                }`}
+              >
+                AETHERIUM AI CORE
               </button>
             </div>
 
@@ -360,6 +382,14 @@ const App: React.FC = () => {
 
           {activeView === 'observx_progression' && (
             <FeedbackTestingMechanics />
+          )}
+
+          {activeView === 'google_drive' && (
+            <GoogleDriveExplorer />
+          )}
+
+          {activeView === 'aetherium_core' && (
+            <AetheriumCoreAI />
           )}
         </main>
       </div>
