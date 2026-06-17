@@ -12,11 +12,15 @@ import { ProjectDetails } from './types';
 import PhilosophyVisualizer from './components/PhilosophyVisualizer';
 import DirectivesGrid from './components/DirectivesGrid';
 import { InteractionProtocols } from './components/InteractionProtocols';
+import ObservXRepoSnapshot from './components/ObservXRepoSnapshot';
+import FeedbackTestingMechanics from './components/FeedbackTestingMechanics';
+import AetheriumBackground from './components/AetheriumBackground';
 
 const App: React.FC = () => {
   const [bootComplete, setBootComplete] = useState(false);
   const [timeLeft, setTimeLeft] = useState<{d: number, h: number, m: number, s: number} | null>(null);
   const [selectedProject, setSelectedProject] = useState<{name: string, data: ProjectDetails} | null>(null);
+  const [activeView, setActiveView] = useState<'nexus' | 'observx_repo' | 'observx_progression'>('nexus');
 
   useEffect(() => {
     const target = new Date(CANON_DATA.mission_vector.target_date).getTime();
@@ -44,7 +48,8 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-200 selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-zinc-950 text-zinc-200 selection:bg-emerald-500/30 relative overflow-hidden">
+      <AetheriumBackground />
       
       {!bootComplete && (
         <Terminal onComplete={() => setBootComplete(true)} />
@@ -57,14 +62,49 @@ const App: React.FC = () => {
       `}>
         {/* Header */}
         <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-0 md:h-16 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
               <h1 className="text-lg font-bold font-mono tracking-tighter text-white">
                 VESSEL<span className="text-zinc-600 mx-1">//</span>NEXUS
               </h1>
             </div>
-            <div className="flex items-center gap-6 text-xs font-mono text-zinc-500 hidden md:flex">
+
+            {/* View Selector Navigation */}
+            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800/80 p-1 rounded-xl font-mono text-xs max-w-full overflow-x-auto">
+              <button
+                onClick={() => setActiveView('nexus')}
+                className={`px-3 py-1.5 text-[11px] rounded-lg transition-all font-semibold whitespace-nowrap ${
+                  activeView === 'nexus'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+                    : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                }`}
+              >
+                NEXUS CONSOLE
+              </button>
+              <button
+                onClick={() => setActiveView('observx_repo')}
+                className={`px-3 py-1.5 text-[11px] rounded-lg transition-all font-semibold whitespace-nowrap ${
+                  activeView === 'observx_repo'
+                    ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20 shadow-[0_0_10px_rgba(139,92,246,0.1)]'
+                    : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                }`}
+              >
+                REPOS SNAPSHOT
+              </button>
+              <button
+                onClick={() => setActiveView('observx_progression')}
+                className={`px-3 py-1.5 text-[11px] rounded-lg transition-all font-semibold whitespace-nowrap ${
+                  activeView === 'observx_progression'
+                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.1)]'
+                    : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                }`}
+              >
+                FEEDBACK & PROGRESS
+              </button>
+            </div>
+
+            <div className="flex items-center gap-6 text-xs font-mono text-zinc-500 hidden lg:flex">
               <span>SYNC: v2026.02</span>
               <span>NODE: GEMINI</span>
               <a 
@@ -80,7 +120,9 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-12">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+          {activeView === 'nexus' && (
+            <div className="space-y-12">
           
           {/* Mission Status Section */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -309,6 +351,16 @@ const App: React.FC = () => {
               </a>
             </div>
           </footer>
+        </div>
+      )}
+
+          {activeView === 'observx_repo' && (
+            <ObservXRepoSnapshot />
+          )}
+
+          {activeView === 'observx_progression' && (
+            <FeedbackTestingMechanics />
+          )}
         </main>
       </div>
 
