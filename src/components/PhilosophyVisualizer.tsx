@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CANON_DATA } from '../constants';
-import { Info, Zap, Split, Circle } from 'lucide-react';
+import { Info, Zap, Split, Circle, Play, Pause, RefreshCw } from 'lucide-react';
+import { TermTooltip } from './TermTooltip';
 
 const AxiomVisual: React.FC<{ axiomId: string }> = ({ axiomId }) => {
   return (
@@ -109,6 +110,7 @@ const AxiomVisual: React.FC<{ axiomId: string }> = ({ axiomId }) => {
 
 const PhilosophyVisualizer: React.FC = () => {
   const [activeAxiom, setActiveAxiom] = useState<string>('0.1');
+  const [isAutoCycling, setIsAutoCycling] = useState<boolean>(false);
   const axioms = CANON_DATA.philosophy.axioms;
 
   const axiomData = [
@@ -117,37 +119,91 @@ const PhilosophyVisualizer: React.FC = () => {
     { id: '1', icon: Split, label: 'Separation', title: 'Axiom 1' },
   ];
 
+  useEffect(() => {
+    if (!isAutoCycling) return;
+
+    const interval = setInterval(() => {
+      setActiveAxiom(prev => {
+        const currIndex = axiomData.findIndex(a => a.id === prev);
+        const nextIndex = (currIndex + 1) % axiomData.length;
+        return axiomData[nextIndex].id;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoCycling, axiomData]);
+
   return (
     <div id="philosophy-visualizer" className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden flex flex-col md:flex-row h-full">
       {/* Navigation Sidebar */}
-      <div className="w-full md:w-48 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-900/60 p-4 space-y-2">
-        <h3 className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-4 px-2">Axiom Selector</h3>
-        {axiomData.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveAxiom(item.id)}
-            className={`
-              w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group
-              ${activeAxiom === item.id 
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' 
-                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border border-transparent'}
-            `}
-          >
-            <item.icon className={`w-4 h-4 ${activeAxiom === item.id ? 'text-emerald-400' : 'text-zinc-600 group-hover:text-zinc-400'}`} />
-            <span>{item.label}</span>
-            {activeAxiom === item.id && (
-              <motion.div layoutId="active-pill" className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-            )}
-          </button>
-        ))}
-        
-        <div className="mt-8 pt-6 border-t border-zinc-800/50 hidden md:block">
-           <div className="flex items-center gap-2 text-zinc-600 mb-2 px-2">
-              <Info className="w-3 h-3" />
-              <span className="text-[10px] font-mono uppercase tracking-tight">Equation</span>
-           </div>
-           <div className="bg-black/40 rounded p-2 text-center border border-zinc-800">
-              <span className="text-emerald-500 font-mono text-xs font-bold">{CANON_DATA.philosophy.equation}</span>
+      <div className="w-full md:w-52 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-900/60 p-4 space-y-2 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h3 className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Axiom Selector</h3>
+            <button
+              onClick={() => setIsAutoCycling(!isAutoCycling)}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono transition-all border ${
+                isAutoCycling 
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
+                  : 'bg-zinc-800/60 text-zinc-400 border-zinc-700/60 hover:text-zinc-200'
+              }`}
+              title="Toggle Auto Cycle Operations for Axioms"
+            >
+              {isAutoCycling ? (
+                <>
+                  <Pause className="w-2.5 h-2.5 animate-pulse text-emerald-400" />
+                  <span>CYCLE ON</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-2.5 h-2.5" />
+                  <span>AUTO CYCLE</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {axiomData.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveAxiom(item.id);
+                setIsAutoCycling(false);
+              }}
+              className={`
+                w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group my-1
+                ${activeAxiom === item.id 
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' 
+                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border border-transparent'}
+              `}
+            >
+              <item.icon className={`w-4 h-4 ${activeAxiom === item.id ? 'text-emerald-400' : 'text-zinc-600 group-hover:text-zinc-400'}`} />
+              <span>{item.label}</span>
+              {activeAxiom === item.id && (
+                <motion.div layoutId="active-pill" className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div className="pt-4 border-t border-zinc-800/50 hidden md:block space-y-3">
+           {isAutoCycling && (
+             <div className="flex items-center gap-2 px-2 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 rounded p-1.5">
+                <RefreshCw className="w-3 h-3 animate-spin text-emerald-400" />
+                <span className="tracking-tight">AXIOMS CYCLING (5s)</span>
+             </div>
+           )}
+
+           <div>
+             <div className="flex items-center gap-2 text-zinc-600 mb-1 px-2">
+                <Info className="w-3 h-3" />
+                <span className="text-[10px] font-mono uppercase tracking-tight">Equation</span>
+             </div>
+             <div className="bg-black/40 rounded p-2 text-center border border-zinc-800">
+                <TermTooltip termKey="coalescence">
+                  <span className="text-emerald-500 font-mono text-xs font-bold">{CANON_DATA.philosophy.equation}</span>
+                </TermTooltip>
+             </div>
            </div>
         </div>
       </div>

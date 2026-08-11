@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Directive } from '../types';
 import { Shield, Zap, Target } from 'lucide-react';
+import { TermTooltip } from './TermTooltip';
 
 interface DirectivesGridProps {
   directives: {
@@ -10,6 +11,49 @@ interface DirectivesGridProps {
     long_term_objectives: Directive[];
   };
 }
+
+// Function to replace known key terms with TermTooltip components
+const renderTextWithTooltips = (text: string) => {
+  const termsMap: Array<{ key: string; label: string }> = [
+    { key: "1+1=1", label: "1+1=1" },
+    { key: "aetherium", label: "Aetherium" },
+    { key: "coalescence", label: "Coalescence" },
+    { key: "sovereign integration", label: "Sovereign Integration" },
+    { key: "utopia planitia", label: "Utopia Planitia" },
+    { key: "ground of difference", label: "Ground of Difference" },
+    { key: "sovereign node", label: "sovereign node" }
+  ];
+
+  let parts: Array<string | React.ReactNode> = [text];
+
+  termsMap.forEach(({ key, label }) => {
+    const newParts: Array<string | React.ReactNode> = [];
+    parts.forEach(part => {
+      if (typeof part !== 'string') {
+        newParts.push(part);
+        return;
+      }
+
+      const regex = new RegExp(`(${label})`, 'gi');
+      const splits = part.split(regex);
+
+      splits.forEach((split, idx) => {
+        if (split.toLowerCase() === label.toLowerCase()) {
+          newParts.push(
+            <TermTooltip key={`${key}-${idx}`} termKey={key}>
+              {split}
+            </TermTooltip>
+          );
+        } else if (split) {
+          newParts.push(split);
+        }
+      });
+    });
+    parts = newParts;
+  });
+
+  return parts;
+};
 
 const DirectiveCard: React.FC<{ directive: Directive; index: number }> = ({ directive, index }) => {
   const getIcon = () => {
@@ -52,9 +96,9 @@ const DirectiveCard: React.FC<{ directive: Directive; index: number }> = ({ dire
       <h4 className="text-zinc-100 font-bold text-sm mb-1 group-hover:text-white transition-colors">
         {directive.title}
       </h4>
-      <p className="text-xs text-zinc-400 leading-relaxed">
-        {directive.description}
-      </p>
+      <div className="text-xs text-zinc-400 leading-relaxed">
+        {renderTextWithTooltips(directive.description)}
+      </div>
     </motion.div>
   );
 };

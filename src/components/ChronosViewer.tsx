@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { TermTooltip } from './TermTooltip';
 
 const ChronosViewer: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -10,6 +11,26 @@ const ChronosViewer: React.FC = () => {
   const [frequency, setFrequency] = useState(45);
   const [amplitude, setAmplitude] = useState(60);
   const [showControls, setShowControls] = useState(false);
+  const [isAutoCyclingWave, setIsAutoCyclingWave] = useState(false);
+
+  // Auto Cycle Wave Matrix effect
+  useEffect(() => {
+    if (!isAutoCyclingWave) return;
+
+    let step = 0;
+    const interval = setInterval(() => {
+      step += 0.1;
+      setResonance(Math.round(70 + Math.sin(step) * 25));
+      setFrequency(Math.round(50 + Math.cos(step * 0.8) * 35));
+      setAmplitude(Math.round(55 + Math.sin(step * 1.2) * 30));
+
+      if (Math.random() > 0.6) {
+        triggerRipple();
+      }
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [isAutoCyclingWave]);
 
   // Dynamic HUD noise state
   const [hudData, setHudData] = useState({
@@ -309,7 +330,9 @@ const ChronosViewer: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-zinc-600">PHONON_TAX:</span>
+              <span className="text-zinc-600">
+                <TermTooltip termKey="phonon field">PHONON_TAX</TermTooltip>:
+              </span>
               <motion.span 
                  animate={{ 
                     color: resonance < 30 ? '#ef4444' : '#a1a1aa',
@@ -385,8 +408,18 @@ const ChronosViewer: React.FC = () => {
                  </div>
              </div>
              
-             {/* Ripple Launcher */}
-             <div className="col-span-1 flex justify-end">
+             {/* Ripple Launcher & Auto Sweep */}
+             <div className="col-span-1 flex flex-col sm:flex-row gap-2 justify-end items-end">
+                 <button 
+                   onClick={() => setIsAutoCyclingWave(!isAutoCyclingWave)}
+                   className={`px-3 py-2 rounded text-xs font-mono transition-all border active:scale-95 ${
+                     isAutoCyclingWave 
+                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)]' 
+                       : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white'
+                   }`}
+                 >
+                     {isAutoCyclingWave ? 'AUTO_SWEEP: ON' : 'AUTO_SWEEP'}
+                 </button>
                  <button 
                    onClick={triggerRipple}
                    className="px-4 py-2 bg-emerald-900/30 hover:bg-emerald-500/20 border border-emerald-500/50 rounded text-xs font-mono text-emerald-400 transition-colors active:scale-95"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PianoRollDemo from './PianoRollDemo';
 import { 
   Copy, 
   Check, 
@@ -499,6 +500,11 @@ const ObservXRepoSnapshot: React.FC = () => {
 
           </div>
 
+        </div>
+
+        {/* Audio Demonstration: Polyphonic Piano Roll */}
+        <div className="pt-2">
+          <PianoRollDemo />
         </div>
 
       </div>

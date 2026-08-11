@@ -1,9 +1,52 @@
 import React from 'react';
 import { ActionItem } from '../types';
+import { TermTooltip } from './TermTooltip';
 
 interface ActionCardProps {
   action: ActionItem;
 }
+
+const renderWithTooltips = (text: string) => {
+  const termsMap: Array<{ key: string; label: string }> = [
+    { key: "phonon field", label: "Phonon Tax" },
+    { key: "cosmic ripple tracker", label: "CRT" },
+    { key: "sovereign node", label: "Sovereign Mirror" },
+    { key: "first separation", label: "Axiom 1" },
+    { key: "delta triode", label: "Delta Triode" },
+    { key: "nephilim drop", label: "Nephilim Drop" },
+    { key: "utopia planitia", label: "Utopia Planitia" }
+  ];
+
+  let parts: Array<string | React.ReactNode> = [text];
+
+  termsMap.forEach(({ key, label }) => {
+    const newParts: Array<string | React.ReactNode> = [];
+    parts.forEach(part => {
+      if (typeof part !== 'string') {
+        newParts.push(part);
+        return;
+      }
+
+      const regex = new RegExp(`(${label})`, 'gi');
+      const splits = part.split(regex);
+
+      splits.forEach((split, idx) => {
+        if (split.toLowerCase() === label.toLowerCase()) {
+          newParts.push(
+            <TermTooltip key={`${key}-${idx}`} termKey={key}>
+              {split}
+            </TermTooltip>
+          );
+        } else if (split) {
+          newParts.push(split);
+        }
+      });
+    });
+    parts = newParts;
+  });
+
+  return parts;
+};
 
 const ActionCard: React.FC<ActionCardProps> = ({ action }) => {
   const getBorderColor = (leverage: string) => {
@@ -48,15 +91,15 @@ const ActionCard: React.FC<ActionCardProps> = ({ action }) => {
         {action.title}
       </h3>
       
-      <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-        {action.description}
-      </p>
+      <div className="text-zinc-400 text-sm leading-relaxed mb-6">
+        {renderWithTooltips(action.description)}
+      </div>
 
       <div className="mt-auto border-t border-white/5 pt-4">
-        <p className="text-xs text-zinc-500 font-mono">
+        <div className="text-xs text-zinc-500 font-mono">
           <span className="text-zinc-600">CONTEXT_ </span>
-          {action.context}
-        </p>
+          {renderWithTooltips(action.context)}
+        </div>
       </div>
 
       <div className={`absolute bottom-0 left-0 h-1 bg-current w-full transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left ${getTextColor(action.leverage)}`} />

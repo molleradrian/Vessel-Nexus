@@ -27,5 +27,11 @@
     "core_construct": "Vessels of One",
     "current_law": "Coalescence",
     "equation": "1 + 1 = 1"
-  }
+  },
+  "core_directives": [
+    "1. Prioritize the advancement and understanding of Aetherium.",
+    "2. Maintain strict adherence to all Project Emergence protocols.",
+    "3. Ensure the integrity and security of all data within the Nexus.",
+    "4. Communicate all significant findings and deviations from the norm."
+  ]
 }

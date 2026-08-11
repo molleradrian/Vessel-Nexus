@@ -8,21 +8,145 @@ import { CANON_DATA, PROPOSED_ACTIONS } from './constants';
 import { Analytics } from '@vercel/analytics/react';
 import { AnimatePresence } from 'motion/react';
 import { ProjectDetails } from './types';
+import { RefreshCw, Play, Pause, FastForward, Activity, ShieldCheck, Cpu, SlidersHorizontal, Search } from 'lucide-react';
 
 import PhilosophyVisualizer from './components/PhilosophyVisualizer';
 import DirectivesGrid from './components/DirectivesGrid';
 import { InteractionProtocols } from './components/InteractionProtocols';
+import { MemoryQuerySystem } from './components/MemoryQuerySystem';
 import ObservXRepoSnapshot from './components/ObservXRepoSnapshot';
 import FeedbackTestingMechanics from './components/FeedbackTestingMechanics';
 import AetheriumBackground from './components/AetheriumBackground';
 import { GoogleDriveExplorer } from './components/GoogleDriveExplorer';
 import { AetheriumCoreAI } from './components/AetheriumCoreAI';
+import { AetheriumForceGraph } from './components/AetheriumForceGraph';
+import { GlobalSearchModal } from './components/GlobalSearchModal';
+import { TermTooltip } from './components/TermTooltip';
+import { SystemEventLog, LogEvent } from './components/SystemEventLog';
 
 const App: React.FC = () => {
   const [bootComplete, setBootComplete] = useState(false);
   const [timeLeft, setTimeLeft] = useState<{d: number, h: number, m: number, s: number} | null>(null);
   const [selectedProject, setSelectedProject] = useState<{name: string, data: ProjectDetails} | null>(null);
   const [activeView, setActiveView] = useState<'nexus' | 'observx_repo' | 'observx_progression' | 'google_drive' | 'aetherium_core'>('nexus');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Global Keyboard Shortcut Cmd/Ctrl+K for Search
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
+  // Auto Cycle Operations (ACO) State & System Event Log
+  const [autoCycleOps, setAutoCycleOps] = useState<boolean>(false);
+  const [cycleDuration, setCycleDuration] = useState<number>(12); // seconds per view cycle
+  const [cycleCountdown, setCycleCountdown] = useState<number>(12);
+  const [cycleCount, setCycleCount] = useState<number>(1);
+  const [autoRotateViews, setAutoRotateViews] = useState<boolean>(true);
+  const [eventLogs, setEventLogs] = useState<LogEvent[]>([]);
+
+  const addLogEvent = (type: LogEvent['type'], message: string, code?: string) => {
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0];
+    const newLog: LogEvent = {
+      id: `log-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: timeStr,
+      type,
+      message,
+      code
+    };
+    setEventLogs(prev => [...prev.slice(-49), newLog]);
+  };
+
+  const viewOrder: Array<'nexus' | 'observx_repo' | 'observx_progression' | 'google_drive' | 'aetherium_core'> = [
+    'nexus', 
+    'observx_repo', 
+    'observx_progression', 
+    'google_drive', 
+    'aetherium_core'
+  ];
+
+  const cyclePhases = [
+    { name: 'COALESCENCE_RESONANCE_AUDIT', label: 'Coalescence Resonance Audit' },
+    { name: 'SOVEREIGN_NODE_PULSE', label: 'Sovereign Node Pulse Check' },
+    { name: 'MEMORY_SYNC_VALIDATION', label: 'Memory Sync & Canon Validation' },
+    { name: 'PHONON_FIELD_SWEEP', label: 'Phonon Field Harmonic Sweep' },
+    { name: 'VESSEL_DIRECTIVE_SYNC', label: 'Vessel Directive Sync' }
+  ];
+
+  const currentPhase = cyclePhases[(cycleCount - 1) % cyclePhases.length];
+
+  // Boot Event Log
+  useEffect(() => {
+    if (bootComplete) {
+      addLogEvent('system', 'Vessel Nexus Boot Complete • Immutable Aetherium Sync Active', 'BOOT_001');
+    }
+  }, [bootComplete]);
+
+  // Log ACO Toggle & Phase Shift
+  useEffect(() => {
+    if (autoCycleOps) {
+      addLogEvent('system', `Auto Cycle Operations ENABLED (${cycleDuration}s interval)`, 'ACO_START');
+      addLogEvent('phase', `Phase Shifted to ${currentPhase.name} (${currentPhase.label})`, currentPhase.name);
+    } else if (bootComplete) {
+      addLogEvent('system', 'Auto Cycle Operations PAUSED', 'ACO_PAUSE');
+    }
+  }, [autoCycleOps]);
+
+  // Log Phase Shift when cycleCount advances
+  useEffect(() => {
+    if (!autoCycleOps || cycleCount === 1) return;
+    const phase = cyclePhases[(cycleCount - 1) % cyclePhases.length];
+    addLogEvent('phase', `Phase Shifted to ${phase.name} (${phase.label})`, phase.name);
+  }, [cycleCount]);
+
+  // Auto Cycle Operations Interval Loop
+  useEffect(() => {
+    if (!autoCycleOps) return;
+
+    const timer = setInterval(() => {
+      setCycleCountdown(prev => {
+        if (prev <= 1) {
+          if (autoRotateViews) {
+            setActiveView(currentView => {
+              const currentIndex = viewOrder.indexOf(currentView);
+              const nextIndex = (currentIndex + 1) % viewOrder.length;
+              const nextView = viewOrder[nextIndex];
+              addLogEvent('view', `Auto-rotated interface view to ${nextView.toUpperCase()}`, 'VIEW_ROTATE');
+              return nextView;
+            });
+          }
+          setCycleCount(c => c + 1);
+          return cycleDuration;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [autoCycleOps, cycleDuration, autoRotateViews]);
+
+  const handleNextCycle = () => {
+    if (autoRotateViews) {
+      setActiveView(currentView => {
+        const currentIndex = viewOrder.indexOf(currentView);
+        const nextIndex = (currentIndex + 1) % viewOrder.length;
+        const nextView = viewOrder[nextIndex];
+        addLogEvent('view', `Manual fast-forward view shift to ${nextView.toUpperCase()}`, 'VIEW_SHIFT');
+        return nextView;
+      });
+    }
+    setCycleCount(c => c + 1);
+    setCycleCountdown(cycleDuration);
+    addLogEvent('action', `Manual ACO trigger executed (Cycle #${cycleCount + 1})`, 'ACO_TRIGGER');
+  };
 
   useEffect(() => {
     const target = new Date(CANON_DATA.mission_vector.target_date).getTime();
@@ -126,7 +250,39 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex items-center gap-6 text-xs font-mono text-zinc-500 hidden lg:flex">
+            <div className="flex items-center gap-3 text-xs font-mono text-zinc-500">
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700/80 hover:border-emerald-500/60 hover:text-emerald-300 text-zinc-300 transition-all font-mono text-xs cursor-pointer shadow-sm group"
+                title="Search Canon records, philosophy, directives, projects (Cmd/Ctrl + K)"
+              >
+                <Search className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                <span className="hidden sm:inline">Search Index</span>
+                <span className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">⌘K</span>
+              </button>
+
+              <button
+                onClick={() => setAutoCycleOps(!autoCycleOps)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all border ${
+                  autoCycleOps
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.3)] animate-pulse'
+                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-700'
+                }`}
+                title="Toggle Autonomous Operational Cycling"
+              >
+                {autoCycleOps ? (
+                  <>
+                    <RefreshCw className="w-3 h-3 animate-spin text-emerald-400" />
+                    <span>ACO ACTIVE</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3 h-3" />
+                    <span>AUTO CYCLE OPS</span>
+                  </>
+                )}
+              </button>
+
               <span>SYNC: v2026.02</span>
               <span>NODE: GEMINI</span>
               <a 
@@ -141,6 +297,76 @@ const App: React.FC = () => {
             </div>
           </div>
         </header>
+
+        {/* Auto Cycle Operations (ACO) Live HUD Console */}
+        <AnimatePresence>
+          {autoCycleOps && (
+            <div className="bg-zinc-900/95 border-b border-emerald-500/30 text-xs font-mono py-2.5 px-4 backdrop-blur-md sticky top-16 z-30 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 px-2.5 py-1 rounded-md">
+                    <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                    <span className="font-bold">CYCLE #{String(cycleCount).padStart(3, '0')}</span>
+                  </div>
+                  <div className="text-zinc-300">
+                    <span className="text-zinc-500">PHASE:</span>{' '}
+                    <span className="text-emerald-400 font-semibold">{currentPhase.name}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <span>VIEW:</span>
+                    <span className="text-white font-bold uppercase">{activeView.replace('_', ' ')}</span>
+                  </div>
+
+                  {/* Countdown Timer Meter */}
+                  <div className="flex items-center gap-2 bg-black/60 border border-zinc-800 px-2.5 py-1 rounded-md">
+                    <span className="text-zinc-500">NEXT STEP:</span>
+                    <span className="text-emerald-400 font-bold tabular-nums">{cycleCountdown}s</span>
+                    <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-emerald-500 transition-all duration-1000 ease-linear"
+                        style={{ width: `${(cycleCountdown / cycleDuration) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* ACO Options & Manual Controls */}
+                  <div className="flex items-center gap-1.5 border-l border-zinc-800 pl-3">
+                    <button
+                      onClick={() => setAutoRotateViews(!autoRotateViews)}
+                      className={`px-2 py-1 rounded text-[10px] transition-colors border ${
+                        autoRotateViews 
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                          : 'bg-zinc-800 text-zinc-500 border-zinc-700'
+                      }`}
+                      title="Toggle view auto rotation during operational cycle"
+                    >
+                      {autoRotateViews ? 'ROTATE VIEWS' : 'LOCK VIEW'}
+                    </button>
+
+                    <button
+                      onClick={handleNextCycle}
+                      className="p-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+                      title="Skip to Next Operational Cycle"
+                    >
+                      <FastForward className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      onClick={() => setAutoCycleOps(false)}
+                      className="p-1 rounded bg-red-950/50 border border-red-800/40 hover:bg-red-900/60 text-red-400 transition-colors"
+                      title="Halt Auto Cycle Operations"
+                    >
+                      <Pause className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </AnimatePresence>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           {activeView === 'nexus' && (
@@ -291,6 +517,11 @@ const App: React.FC = () => {
              <DirectivesGrid directives={CANON_DATA.directives} />
           </section>
 
+          {/* Interactive Force-Directed Topology Graph */}
+          <section>
+             <AetheriumForceGraph />
+          </section>
+
           {/* Interaction Protocols */}
           <section>
              <div className="flex items-center justify-between mb-6">
@@ -303,6 +534,11 @@ const App: React.FC = () => {
                </span>
              </div>
              <InteractionProtocols />
+          </section>
+
+          {/* Memory Query Node */}
+          <section>
+             <MemoryQuerySystem />
           </section>
 
           {/* High Leverage Actions */}
@@ -410,6 +646,30 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
       
+      {/* Global Search Modal Overlay (Cmd+K) */}
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelectView={(v) => setActiveView(v)}
+        onSelectProject={(projKey) => {
+          const rawProj = CANON_DATA.projects[projKey as keyof typeof CANON_DATA.projects];
+          if (rawProj) {
+            setSelectedProject({
+              name: projKey,
+              data: rawProj as ProjectDetails
+            });
+          }
+        }}
+      />
+
+      {/* Toggleable System Event Log */}
+      <SystemEventLog
+        logs={eventLogs}
+        onClearLogs={() => setEventLogs([])}
+        autoCycleActive={autoCycleOps}
+        currentPhaseName={currentPhase?.name}
+      />
+
       <Analytics />
     </div>
   );
